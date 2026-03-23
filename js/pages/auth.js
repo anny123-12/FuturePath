@@ -25,12 +25,6 @@ const PageAuth = {
           <div class="auth-footer">
             Pas encore de compte ? <a onclick="App.navigate('register')">Créer un compte</a>
           </div>
-          <div class="auth-divider">Comptes de test</div>
-          <div style="display:flex;flex-direction:column;gap:var(--space-2);font-size:var(--text-xs);color:var(--text-muted);">
-            <span>👑 Admin: admin@futurepath.com / admin123</span>
-            <span>🏢 Entreprise: contact@techvision.dz / company123</span>
-            <span>👤 Utilisateur: ahmed@email.com / user123</span>
-          </div>
         </div>
       </div>
     `;
