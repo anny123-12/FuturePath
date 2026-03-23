@@ -87,8 +87,11 @@ const PageAdmin = {
                     ${o.description}
                   </div>
                 </td>
-                <td>${o.company}</td>
-                <td><span class="badge badge-${o.category}">${Card.categoryLabels[o.category]}</span></td>
+                 <td>${o.company}</td>
+                <td>
+                  <span class="badge badge-${o.category}">${Card.categoryLabels[o.category]}</span>
+                  ${o.isPremium ? '<span class="badge badge-premium" style="margin-top:4px;">⭐ Sponsorisé</span>' : ''}
+                </td>
                 <td style="white-space:nowrap;">${Card.timeAgo(o.createdAt)}</td>
                 <td>
                   <div class="flex gap-2">
@@ -144,10 +147,11 @@ const PageAdmin = {
           <div class="opp-card-avatar">${opp.company?.charAt(0)}</div>
           <div><strong>${opp.company}</strong><br><span style="font-size:var(--text-xs);color:var(--text-muted);">📍 ${opp.location}</span></div>
         </div>
-        <div class="flex gap-2">
+         <div class="flex gap-2">
           <span class="badge badge-${opp.category}">${Card.categoryLabels[opp.category]}</span>
           ${opp.type ? `<span class="badge badge-info">${opp.type}</span>` : ''}
           ${opp.salary ? `<span class="badge" style="background:var(--bg-glass);border:1px solid var(--border-subtle);">💰 ${opp.salary}</span>` : ''}
+          ${opp.isPremium ? '<span class="badge badge-premium">⭐ Sponsorisé</span>' : ''}
         </div>
         ${opp.applyUrl ? `
           <div style="background:var(--bg-glass);padding:var(--space-3);border-radius:var(--radius-md);border:1px solid var(--border-subtle);word-break:break-all;">
@@ -169,7 +173,8 @@ const PageAdmin = {
 
   approve(oppId) {
     Store.updateOpportunity(oppId, { status: 'approved' });
-    Toast.success('Offre approuvée ✓', 'L\'offre est maintenant visible par tous.');
+    Store.triggerAlertsForOpportunity(oppId);
+    Toast.success('Offre approuvée ✓', 'L\'offre est maintenant visible et les alertes ont été envoyées.');
     this.render();
   },
 

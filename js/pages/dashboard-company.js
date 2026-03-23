@@ -55,8 +55,13 @@ const PageCompanyDashboard = {
                         <td>❤️ ${o.likes?.length || 0}</td>
                         <td>
                           <div class="flex gap-2">
-                            <button class="btn btn-ghost btn-sm" onclick="App.navigate('detail/${o.id}')">👁</button>
-                            <button class="btn btn-danger btn-sm" onclick="PageCompanyDashboard.deleteOffer('${o.id}')">🗑</button>
+                            <button class="btn btn-ghost btn-sm" onclick="App.navigate('detail/${o.id}')" title="Voir">👁</button>
+                            ${!o.isPremium ? `
+                              <button class="btn btn-accent btn-sm" onclick="PageCompanyDashboard.boostOffer('${o.id}')" title="Propulser l'offre (Ads)">🚀 Boost</button>
+                            ` : `
+                              <button class="btn btn-sm" disabled style="background:var(--accent-500);color:white;opacity:1;">⭐ Boosté</button>
+                            `}
+                            <button class="btn btn-danger btn-sm" onclick="PageCompanyDashboard.deleteOffer('${o.id}')" title="Supprimer">🗑</button>
                           </div>
                         </td>
                       </tr>
@@ -97,7 +102,7 @@ const PageCompanyDashboard = {
         <div class="form-row">
           <div class="form-group">
             <label class="form-label">Localisation</label>
-            <input type="text" class="form-input" id="opp-location" placeholder="Ex: Alger">
+            <input type="text" class="form-input" id="opp-location" placeholder="Ex: Bujumbura">
           </div>
           <div class="form-group">
             <label class="form-label">Salaire / Budget</label>
@@ -159,5 +164,47 @@ const PageCompanyDashboard = {
       Toast.success('Offre supprimée');
       this.render();
     });
+  },
+
+  boostOffer(oppId) {
+    Modal.show('Propulser votre offre (Sponsorisé)', `
+      <div class="text-center" style="padding:var(--space-4);">
+        <div style="font-size:3rem;margin-bottom:var(--space-4);">🚀</div>
+        <h3 style="margin-bottom:var(--space-2);">Boostez votre visibilité</h3>
+        <p style="color:var(--text-secondary);margin-bottom:var(--space-6);">
+          Faites apparaître votre offre en haut des résultats avec un badge <b>Premium</b> 
+          pour attirer 5x plus de candidats.
+        </p>
+        <div style="background:var(--bg-glass);padding:var(--space-4);border-radius:var(--radius-lg);border:1px solid var(--accent-300);text-align:left;">
+          <h4 style="margin-bottom:var(--space-2);">Tarif Unique</h4>
+          <div class="flex justify-between items-center">
+            <span style="font-size:var(--text-lg);font-weight:700;color:var(--accent-300);">4 500 DZD</span>
+            <span class="badge badge-info">Durée : 30 jours</span>
+          </div>
+        </div>
+      </div>
+    `, {
+      footer: `
+        <button class="btn btn-secondary" onclick="Modal.close()">Annuler</button>
+        <button class="btn btn-accent" onclick="PageCompanyDashboard.processPayment('${oppId}')">💳 Payer et Propulser</button>
+      `
+    });
+  },
+
+  processPayment(oppId) {
+    // Simulation d'un chargement de paiement
+    Modal.show('Traitement du paiement...', `
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <p>Communication avec le serveur bancaire...</p>
+      </div>
+    `, { footer: '' });
+
+    setTimeout(() => {
+      Store.setPremium(oppId, true);
+      Modal.close();
+      Toast.success('Paiement réussi ! 🚀', 'Votre offre est désormais sponsorisée et apparaîtra en priorité.');
+      this.render();
+    }, 2000);
   }
 };

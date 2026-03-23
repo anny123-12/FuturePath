@@ -12,9 +12,11 @@ const Card = {
     const user = Auth.getCurrentUser();
     const isLiked = user && opp.likes && opp.likes.includes(user.id);
     const timeAgo = this.timeAgo(opp.createdAt);
+    const isPremium = opp.isPremium === true;
 
     return `
-      <div class="card opp-card animate-fade-in-up" onclick="App.navigate('detail/${opp.id}')">
+      <div class="card opp-card animate-fade-in-up ${isPremium ? 'card-premium' : ''}" onclick="App.navigate('detail/${opp.id}')">
+        ${isPremium ? '<div class="badge badge-premium" style="position:absolute;top:12px;right:12px;z-index:2;">⭐ Sponsorisé</div>' : ''}
         <div class="opp-card-header">
           <div class="opp-card-company">
             <div class="opp-card-avatar">${opp.company?.charAt(0) || '?'}</div>
@@ -149,6 +151,8 @@ const Filters = {
     }
     if (this.state.sort === 'recent') opps.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     else if (this.state.sort === 'popular') opps.sort((a, b) => (b.likes?.length || 0) - (a.likes?.length || 0));
-    return opps;
+    
+    // Always prioritize premium offers
+    return opps.sort((a, b) => (b.isPremium ? 1 : 0) - (a.isPremium ? 1 : 0));
   }
 };

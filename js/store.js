@@ -120,6 +120,64 @@ const Store = {
     return idx === -1;
   },
 
+  // ---- Notifications & Smart Alerts ----
+  getNotifications(userId) {
+    const user = this.getUserById(userId);
+    return user?.notifications || [];
+  },
+
+  addNotification(userId, notification) {
+    const user = this.getUserById(userId);
+    if (!user) return;
+    const notes = user.notifications || [];
+    notes.unshift({
+      id: this.generateId(),
+      date: new Date().toISOString(),
+      isRead: false,
+      ...notification
+    });
+    this.updateUser(userId, { notifications: notes });
+    // Update session if it's the current user
+    const current = this.getCurrentUser();
+    if (current && current.id === userId) {
+      this.setCurrentUser(this.getUserById(userId));
+    }
+  },
+
+  markNotificationsRead(userId) {
+    const user = this.getUserById(userId);
+    if (!user) return;
+    const notes = (user.notifications || []).map(n => ({ ...n, isRead: true }));
+    this.updateUser(userId, { notifications: notes });
+    const current = this.getCurrentUser();
+    if (current && current.id === userId) {
+      this.setCurrentUser(this.getUserById(userId));
+    }
+  },
+
+  triggerAlertsForOpportunity(oppId) {
+    const opp = this.getOpportunityById(oppId);
+    if (!opp || opp.status !== 'approved') return;
+
+    const users = this.getUsers().filter(u => u.role === 'user' && u.diploma);
+    const keywords = [opp.title, opp.description, ...(opp.requirements || [])]
+      .join(' ')
+      .toLowerCase();
+
+    users.forEach(user => {
+      const diploma = user.diploma.toLowerCase();
+      // Simple keyword matching: if the diploma is mentioned in the job details
+      if (keywords.includes(diploma) || diploma.split(' ').some(word => word.length > 3 && keywords.includes(word))) {
+        this.addNotification(user.id, {
+          title: 'Nouvelle offre pour vous !',
+          message: `L'offre "${opp.title}" correspond à votre profil (${user.diploma}).`,
+          link: `detail/${opp.id}`,
+          type: 'alert'
+        });
+      }
+    });
+  },
+
   // ---- Stats ----
   getStats() {
     const opps = this.getOpportunities();
@@ -151,29 +209,29 @@ const Store = {
     });
 
     // Sample companies
-    const c1 = this.createUser({ name: 'TechVision Algérie', email: 'contact@techvision.dz', password: 'company123', role: 'company', avatar: 'T' });
-    const c2 = this.createUser({ name: 'DataFlow Solutions', email: 'rh@dataflow.dz', password: 'company123', role: 'company', avatar: 'D' });
-    const c3 = this.createUser({ name: 'GreenEnergy Corp', email: 'jobs@greenenergy.dz', password: 'company123', role: 'company', avatar: 'G' });
-    const c4 = this.createUser({ name: 'MediCare Plus', email: 'recrutement@medicare.dz', password: 'company123', role: 'company', avatar: 'M' });
-    const c5 = this.createUser({ name: 'FinStart Academy', email: 'info@finstart.dz', password: 'company123', role: 'company', avatar: 'F' });
+    const c1 = this.createUser({ name: 'TechVision Burundi', email: 'contact@techvision.bi', password: 'company123', role: 'company', avatar: 'T' });
+    const c2 = this.createUser({ name: 'DataFlow Solutions', email: 'rh@dataflow.bi', password: 'company123', role: 'company', avatar: 'D' });
+    const c3 = this.createUser({ name: 'GreenEnergy Corp', email: 'jobs@greenenergy.bi', password: 'company123', role: 'company', avatar: 'G' });
+    const c4 = this.createUser({ name: 'MediCare Plus', email: 'recrutement@medicare.bi', password: 'company123', role: 'company', avatar: 'M' });
+    const c5 = this.createUser({ name: 'FinStart Academy', email: 'info@finstart.bi', password: 'company123', role: 'company', avatar: 'F' });
 
     // Sample user
     this.createUser({ name: 'Ahmed Benali', email: 'ahmed@email.com', password: 'user123', role: 'user', avatar: 'A' });
 
     const opportunities = [
-      { title: 'Développeur Full Stack Senior', company: c1.name, companyId: c1.id, category: 'emploi', type: 'CDI', location: 'Alger', salary: '150 000 - 200 000 DZD', applyUrl: 'https://techvision.dz/jobs/java-dev', description: 'Nous recherchons un développeur Full Stack expérimenté pour rejoindre notre équipe innovation. Vous travaillerez sur des projets web modernes utilisant React, Node.js et les technologies cloud.', requirements: ['3+ ans d\'expérience en développement web', 'Maîtrise de React.js et Node.js', 'Expérience avec les bases de données SQL et NoSQL', 'Connaissances en CI/CD et DevOps', 'Capacité à travailler en équipe agile'], status: 'approved' },
-      { title: 'Stage en Data Science', company: c2.name, companyId: c2.id, category: 'stage', type: 'Stage', location: 'Oran', salary: '30 000 DZD/mois', applyUrl: 'https://dataflow.dz/internships/ds', description: 'Offre de stage de 6 mois en Data Science. Vous participerez à des projets d\'analyse de données et de machine learning au sein de notre équipe R&D.', requirements: ['Étudiant en informatique ou mathématiques', 'Connaissances en Python et statistiques', 'Notions de Machine Learning', 'Motivation et curiosité'], status: 'approved' },
-      { title: 'Bourse d\'Excellence Universitaire 2026', company: c5.name, companyId: c5.id, category: 'bourse', type: 'Bourse', location: 'National', salary: '500 000 DZD/an', applyUrl: 'https://finstart.dz/scholarships/2026', description: 'Programme de bourses d\'excellence pour les étudiants brillants souhaitant poursuivre leurs études supérieures en finance, technologie ou sciences de l\'ingénieur.', requirements: ['Moyenne générale supérieure à 14/20', 'Lettre de motivation', 'Projet professionnel clair', 'Engagement communautaire apprécié'], status: 'approved' },
-      { title: 'Conférence Tech Innovation 2026', company: c1.name, companyId: c1.id, category: 'evenement', type: 'Événement', location: 'Alger', salary: 'Gratuit', applyUrl: 'https://techvision.dz/events/tech-2026', description: 'Grande conférence annuelle sur l\'innovation technologique. Networking, workshops et présentations par des experts internationaux. Plus de 500 participants attendus.', requirements: ['Inscription obligatoire', 'Ouvert à tous les professionnels IT', 'Places limitées à 500 participants'], status: 'approved' },
-      { title: 'Formation Certifiante en Cybersécurité', company: c2.name, companyId: c2.id, category: 'formation', type: 'Formation', location: 'En ligne', salary: '45 000 DZD', applyUrl: 'https://dataflow.dz/academy/cyber', description: 'Formation intensive de 3 mois en cybersécurité avec certification reconnue internationalement. Cours en ligne avec labs pratiques.', requirements: ['Bases en réseaux informatiques', 'Connaissances en systèmes d\'exploitation', 'Disponibilité de 15h/semaine', 'Ordinateur avec connexion internet'], status: 'approved' },
-      { title: 'Ingénieur DevOps', company: c3.name, companyId: c3.id, category: 'emploi', type: 'CDI', location: 'Constantine', salary: '180 000 DZD', applyUrl: 'https://greenenergy.dz/careers/devops', description: 'Rejoignez notre équipe infrastructure pour automatiser et optimiser nos processus de déploiement. Environnement cloud-native avec Kubernetes et AWS.', requirements: ['2+ ans en DevOps/SRE', 'Maîtrise de Docker et Kubernetes', 'Expérience AWS ou Azure', 'Scripting Python/Bash'], status: 'approved' },
-      { title: 'Stage Marketing Digital', company: c4.name, companyId: c4.id, category: 'stage', type: 'Stage', location: 'Alger', salary: '25 000 DZD/mois', applyUrl: 'https://medicare.dz/hr/mkt-intern', description: 'Stage de 4 mois au sein du département marketing. Vous participerez à la gestion des réseaux sociaux et aux campagnes publicitaires digitales.', requirements: ['Étudiant en communication ou marketing', 'Maîtrise des réseaux sociaux', 'Créativité et sens de l\'initiative', 'Bon niveau en français et arabe'], status: 'approved' },
-      { title: 'Bourse de Recherche Doctorale', company: c5.name, companyId: c5.id, category: 'bourse', type: 'Bourse', location: 'International', salary: '800 000 DZD/an', applyUrl: 'https://finstart.dz/phd/scholarship', description: 'Bourse complète pour doctorants en intelligence artificielle. Couvre frais de scolarité, logement et allocation mensuelle.', requirements: ['Master en informatique ou domaine connexe', 'Publication scientifique souhaitée', 'Projet de recherche en IA', 'Score TOEFL/IELTS requis'], status: 'approved' },
-      { title: 'Hackathon Green Tech', company: c3.name, companyId: c3.id, category: 'evenement', type: 'Événement', location: 'Oran', salary: 'Gratuit', applyUrl: 'https://greenenergy.dz/events/hackathon', description: 'Hackathon de 48h sur le thème des technologies vertes. Prix total de 2 000 000 DZD pour les 3 meilleures équipes. Mentoring par des experts de l\'industrie.', requirements: ['Équipes de 3 à 5 personnes', 'Prototype fonctionnel attendu', 'Thème: solutions éco-responsables'], status: 'approved' },
-      { title: 'Formation Cloud AWS', company: c2.name, companyId: c2.id, category: 'formation', type: 'Formation', location: 'Alger', salary: '60 000 DZD', applyUrl: 'https://dataflow.dz/academy/aws', description: 'Préparation à la certification AWS Solutions Architect. 2 mois de formation intensive avec projets pratiques et examen blanc inclus.', requirements: ['Bases en développement web', 'Notions de réseaux', 'Engagement sur 2 mois', 'PC portable requis'], status: 'approved' },
-      { title: 'Designer UX/UI Junior', company: c1.name, companyId: c1.id, category: 'emploi', type: 'CDD', location: 'Alger', salary: '120 000 DZD', applyUrl: 'https://techvision.dz/jobs/ui-designer', description: 'Poste en CDD de 12 mois pour un designer UX/UI passionné. Travail sur des applications mobiles et web innovantes.', requirements: ['Portfolio design requis', 'Maîtrise de Figma', 'Connaissances en design systems', 'Sens de l\'esthétique et de l\'utilisabilité'], status: 'approved' },
-      { title: 'Analyste Données Santé', company: c4.name, companyId: c4.id, category: 'emploi', type: 'CDI', location: 'burundi', salary: '160 000 DZD', applyUrl: 'https://medicare.dz/hr/data-health', description: 'Poste d\'analyste de données dans le secteur de la santé. Vous analyserez les données patients pour améliorer la qualité des soins et optimiser les processus.', requirements: ['Formation en statistiques ou data science', 'Expérience en analyse de données', 'Connaissances secteur santé appréciées', 'SQL et Python obligatoires'], status: 'pending' },
-      { title: 'Workshop Intelligence Artificielle', company: c2.name, companyId: c2.id, category: 'formation', type: 'Workshop', location: 'En ligne', salary: 'Gratuit', applyUrl: 'https://dataflow.dz/events/ia-workshop', description: 'Workshop gratuit d\'initiation à l\'intelligence artificielle. Apprenez les fondamentaux du deep learning en une journée avec des exercices pratiques.', requirements: ['Connaissances basiques en programmation', 'Python recommandé', 'Inscription limitée à 100 places'], status: 'pending' },
+      { title: 'Développeur Full Stack Senior', company: oppsInBurundi[0]?.name || 'TechVision', companyId: '1', category: 'emploi', type: 'CDI', location: 'Bujumbura', salary: '1 500 000 BIF', applyUrl: 'https://techvision.bi/jobs/java-dev', description: 'Nous recherchons un développeur Full Stack expérimenté pour rejoindre notre équipe innovation.', requirements: ['3+ ans d\'expérience', 'React & Node', 'Informatique'], status: 'approved' },
+      { title: 'Stage en Data Science', company: 'DataFlow', companyId: '2', category: 'stage', type: 'Stage', location: 'Gitega', salary: '300 000 BIF/mois', applyUrl: 'https://dataflow.bi/internships/ds', description: 'Offre de stage en Data Science.', requirements: ['Étudiant en informatique', 'Statistiques'], status: 'approved' },
+      { title: 'Bourse d\'Excellence Universitaire 2026', company: c5.name, companyId: c5.id, category: 'bourse', type: 'Bourse', location: 'National', salary: '5 000 000 BIF/an', applyUrl: 'https://finstart.bi/scholarships/2026', description: 'Programme de bourses d\'excellence pour les étudiants brillants souhaitant poursuivre leurs études supérieures en finance, technologie ou sciences de l\'ingénieur.', requirements: ['Moyenne générale supérieure à 14/20', 'Lettre de motivation', 'Projet professionnel clair', 'Engagement communautaire apprécié'], status: 'approved' },
+      { title: 'Conférence Tech 2026', company: 'TechVision', companyId: '1', category: 'evenement', type: 'Événement', location: 'Bujumbura', salary: 'Gratuit', applyUrl: 'https://techvision.bi/events/tech-2026', description: 'Conférence tech.', requirements: ['Inscription obligatoire'], status: 'approved' },
+      { title: 'Formation Certifiante en Cybersécurité', company: c2.name, companyId: c2.id, category: 'formation', type: 'Formation', location: 'En ligne', salary: '450 000 BIF', applyUrl: 'https://dataflow.bi/academy/cyber', description: 'Formation intensive de 3 mois en cybersécurité.', requirements: ['Bases en réseaux'], status: 'approved' },
+      { title: 'Ingénieur DevOps', company: c3.name, companyId: c3.id, category: 'emploi', type: 'CDI', location: 'Gitega', salary: '1 800 000 BIF', applyUrl: 'https://greenenergy.bi/careers/devops', description: 'Rejoignez notre équipe infrastructure.', requirements: ['2+ ans en DevOps'], status: 'approved' },
+      { title: 'Stage Marketing Digital', company: 'MediCare', companyId: '4', category: 'stage', type: 'Stage', location: 'Ngozi', salary: '200 000 BIF/mois', applyUrl: 'https://medicare.bi/hr/mkt-intern', description: 'Stage marketing.', requirements: ['Marketing'], status: 'approved' },
+      { title: 'Bourse de Recherche Doctorale', company: c5.name, companyId: c5.id, category: 'bourse', type: 'Bourse', location: 'International', salary: '8 000 000 BIF/an', applyUrl: 'https://finstart.bi/phd/scholarship', description: 'Bourse complète pour doctorants.', requirements: ['Master en informatique'], status: 'approved' },
+      { title: 'Hackathon Green Tech', company: c3.name, companyId: c3.id, category: 'evenement', type: 'Événement', location: 'Rumonge', salary: 'Gratuit', applyUrl: 'https://greenenergy.bi/events/hackathon', description: 'Hackathon 48h.', requirements: ['Équipes de 3-5'], status: 'approved' },
+      { title: 'Formation Cloud AWS', company: c2.name, companyId: c2.id, category: 'formation', type: 'Formation', location: 'Bujumbura', salary: '600 000 BIF', applyUrl: 'https://dataflow.bi/academy/aws', description: 'Préparation certif AWS.', requirements: ['Bases tech'], status: 'approved' },
+      { title: 'Designer UX/UI Junior', company: c1.name, companyId: c1.id, category: 'emploi', type: 'CDD', location: 'Bujumbura', salary: '1 200 000 BIF', applyUrl: 'https://techvision.bi/jobs/ui-designer', description: 'Poste en CDD.', requirements: ['Figma'], status: 'approved' },
+      { title: 'Analyste Données Santé', company: c4.name, companyId: c4.id, category: 'emploi', type: 'CDI', location: 'Bujumbura', salary: '1 600 000 BIF', applyUrl: 'https://medicare.bi/hr/data-health', description: 'Poste analyste.', requirements: ['Stats'], status: 'pending' },
+      { title: 'Workshop Intelligence Artificielle', company: c2.name, companyId: c2.id, category: 'formation', type: 'Workshop', location: 'En ligne', salary: 'Gratuit', applyUrl: 'https://dataflow.bi/events/ia-workshop', description: 'Workshop gratuit d\'initiation à l\'intelligence artificielle.', requirements: ['Proche Bujumbura'], status: 'pending' },
     ];
 
     opportunities.forEach(opp => this.createOpportunity(opp));

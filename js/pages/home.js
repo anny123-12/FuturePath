@@ -62,6 +62,17 @@ const PageHome = {
         </div>
       </section>
 
+      <!-- Featured Opportunities (Sponsored) -->
+      <section id="featured-section" class="section" style="display:none; padding-top:0;">
+        <div class="container">
+          <div class="flex items-center gap-3 mb-8 animate-fade-in-up">
+            <h2 class="section-title" style="margin:0;">Opportunités à la Une</h2>
+            <span class="badge badge-premium">⭐ Sponsorisé</span>
+          </div>
+          <div class="opportunities-grid" id="featured-grid"></div>
+        </div>
+      </section>
+
       <!-- Popular Opportunities -->
       <section class="section" style="background: var(--bg-secondary);">
         <div class="container">
@@ -96,7 +107,21 @@ const PageHome = {
       ${this.renderFooter()}
     `;
 
+    this.renderFeatured();
     this.renderPopular();
+  },
+
+  renderFeatured() {
+    const section = document.getElementById('featured-section');
+    const grid = document.getElementById('featured-grid');
+    if (!section || !grid) return;
+    const premiumOpps = Store.getApprovedOpportunities().filter(o => o.isPremium);
+    if (premiumOpps.length > 0) {
+      section.style.display = 'block';
+      grid.innerHTML = premiumOpps.map(o => Card.render(o)).join('');
+    } else {
+      section.style.display = 'none';
+    }
   },
 
   renderCategories(stats) {
@@ -155,7 +180,7 @@ const PageHome = {
           </div>
           <div class="footer-bottom">
             <span>© 2026 FuturePath. Tous droits réservés.</span>
-            <span>Fait avec ❤️ en Algérie</span>
+            <span>Fait avec ❤️ au Burundi</span>
           </div>
         </div>
       </footer>

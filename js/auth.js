@@ -22,6 +22,8 @@ const Auth = {
       name: data.name,
       email: data.email,
       password: data.password,
+      gender: data.gender || '',
+      age: data.age || '',
       role: data.role || 'user',
       avatar: data.name.charAt(0).toUpperCase()
     });

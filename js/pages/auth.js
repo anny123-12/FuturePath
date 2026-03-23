@@ -65,6 +65,19 @@ const PageAuth = {
               <label class="form-label">Email</label>
               <input type="email" class="form-input" id="register-email" placeholder="votre@email.com" required>
             </div>
+            <div class="form-row" id="extra-fields">
+              <div class="form-group">
+                <label class="form-label">Sexe</label>
+                <select class="form-select" id="register-gender">
+                  <option value="M">Homme</option>
+                  <option value="F">Femme</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Âge</label>
+                <input type="number" class="form-input" id="register-age" placeholder="Ex: 25" min="16" max="99">
+              </div>
+            </div>
             <div class="form-group">
               <label class="form-label">Mot de passe</label>
               <input type="password" class="form-input" id="register-password" placeholder="Minimum 6 caractères" required minlength="6">
@@ -97,6 +110,10 @@ const PageAuth = {
       nameLabel.textContent = 'Nom complet';
       nameInput.placeholder = 'Votre nom';
     }
+    const extraFields = document.getElementById('extra-fields');
+    if (extraFields) {
+      extraFields.style.display = role === 'company' ? 'none' : 'flex';
+    }
   },
 
   handleLogin(e) {
@@ -121,6 +138,8 @@ const PageAuth = {
       name: document.getElementById('register-name').value.trim(),
       email: document.getElementById('register-email').value.trim(),
       password: document.getElementById('register-password').value,
+      gender: this.selectedRole === 'user' ? document.getElementById('register-gender').value : '',
+      age: this.selectedRole === 'user' ? document.getElementById('register-age').value : '',
       role: this.selectedRole
     };
     const result = Auth.register(data);

@@ -1,17 +1,22 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="FuturePath — La plateforme de référence pour découvrir des opportunités d'emploi, stages, bourses, événements et formations en Algérie.">
-  <meta name="keywords" content="emploi, stages, bourses, événements, formations, Algérie, opportunités, carrière">
+  <meta name="description" content="FuturePath — La plateforme de référence pour découvrir des opportunités (emplois, bourses, stages) au Burundi.">
+  <meta property="og:title" content="FuturePath — Votre Avenir Commencez Ici">
+  <meta property="og:description" content="Centralisez toutes les opportunités au Burundi en un seul endroit.">
+  <meta name="keywords" content="emploi, stages, bourses, événements, formations, Burundi, opportunités, carrière">
   <meta name="author" content="FuturePath">
   <title>FuturePath — Centralisez Vos Opportunités</title>
 
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet">
 
   <!-- Styles -->
   <link rel="stylesheet" href="css/variables.css">
@@ -20,13 +25,27 @@
   <link rel="stylesheet" href="css/pages.css">
 
   <!-- Favicon -->
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='80' font-size='80'>🚀</text></svg>">
+  <link rel="icon"
+    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='80' font-size='80'>🚀</text></svg>">
+
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#8b5cf6">
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js');
+      });
+    }
+  </script>
 </head>
+
 <body>
   <!-- Navbar -->
   <nav class="navbar" id="navbar"></nav>
 
   <!-- Main App Container -->
+
   <main id="app">
     <!-- Pages are rendered here by the SPA router -->
     <div class="loading-state">
@@ -51,4 +70,5 @@
   <script src="js/pages/profile.js"></script>
   <script src="js/app.js"></script>
 </body>
+
 </html>
